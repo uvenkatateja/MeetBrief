@@ -1,0 +1,164 @@
+// This is your Prisma schema file for MeetBrief
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===================================
+// MEETBRIEF DATABASE MODELS
+// ===================================
+
+model User {
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  clerkUserId   String   @unique @map("clerk_user_id") @db.VarChar(255)
+  email         String   @db.VarChar(255)
+  firstName     String?  @map("first_name") @db.VarChar(100)
+  lastName      String?  @map("last_name") @db.VarChar(100)
+  imageUrl      String?  @map("image_url")
+  plan          Plan     @default(FREE)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  transcripts   Transcript[]
+  summaries     Summary[]
+  sends         Send[]
+  userUsage     UserUsage[]
+
+  @@map("users")
+  @@index([clerkUserId], map: "idx_users_clerk_user_id")
+  @@index([email], map: "idx_users_email")
+  @@index([plan], map: "idx_users_plan")
+}
+
+model Transcript {
+  id            String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId        String            @map("user_id") @db.Uuid
+  title         String            @db.VarChar(255)
+  fileName      String            @map("file_name") @db.VarChar(255)
+  fileUrl       String            @map("file_url")
+  fileSize      BigInt            @map("file_size")
+  fileType      String            @map("file_type") @db.VarChar(50)
+  extractedText String?           @map("extracted_text")
+  wordCount     Int               @default(0) @map("word_count")
+  status        TranscriptStatus  @default(PROCESSING)
+  errorMessage  String?           @map("error_message")
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  summaries     Summary[]
+
+  @@map("transcripts")
+  @@index([userId], map: "idx_transcripts_user_id")
+  @@index([status], map: "idx_transcripts_status")
+  @@index([createdAt(sort: Desc)], map: "idx_transcripts_created_at")
+}
+
+model Summary {
+  id             String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  transcriptId   String        @map("transcript_id") @db.Uuid
+  userId         String        @map("user_id") @db.Uuid
+  title          String        @db.VarChar(255)
+  prompt         String
+  summary        String
+  aiModel        String        @map("ai_model") @db.VarChar(50)
+  tokenCount     Int           @default(0) @map("token_count")
+  processingTime Int           @default(0) @map("processing_time")
+  status         SummaryStatus @default(GENERATING)
+  errorMessage   String?       @map("error_message")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  transcript     Transcript    @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sends          Send[]
+
+  @@map("summaries")
+  @@index([transcriptId], map: "idx_summaries_transcript_id")
+  @@index([userId], map: "idx_summaries_user_id")
+  @@index([status], map: "idx_summaries_status")
+  @@index([createdAt(sort: Desc)], map: "idx_summaries_created_at")
+}
+
+model Send {
+  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  summaryId   String     @map("summary_id") @db.Uuid
+  userId      String     @map("user_id") @db.Uuid
+  recipients  Json       @db.JsonB
+  subject     String     @db.VarChar(255)
+  emailId     String?    @map("email_id") @db.VarChar(255)
+  status      SendStatus @default(SENDING)
+  errorMessage String?   @map("error_message")
+  sentAt      DateTime   @default(now()) @map("sent_at") @db.Timestamptz(6)
+  deliveredAt DateTime?  @map("delivered_at") @db.Timestamptz(6)
+  openedAt    DateTime?  @map("opened_at") @db.Timestamptz(6)
+
+  // Relations
+  summary     Summary    @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sends")
+  @@index([summaryId], map: "idx_sends_summary_id")
+  @@index([userId], map: "idx_sends_user_id")
+  @@index([status], map: "idx_sends_status")
+  @@index([sentAt(sort: Desc)], map: "idx_sends_sent_at")
+}
+
+model UserUsage {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  usageType  UsageType @map("usage_type")
+  usageCount Int       @default(1) @map("usage_count")
+  usageDate  DateTime  @default(now()) @map("usage_date") @db.Date
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, usageType, usageDate], map: "idx_user_usage_unique")
+  @@map("user_usage")
+  @@index([userId, usageDate], map: "idx_user_usage_user_date")
+}
+
+// ===================================
+// ENUMS
+// ===================================
+
+enum Plan {
+  FREE         @map("free")
+  PRO          @map("pro")
+  ENTERPRISE   @map("enterprise")
+}
+
+enum TranscriptStatus {
+  PROCESSING   @map("processing")
+  COMPLETED    @map("completed")
+  FAILED       @map("failed")
+}
+
+enum SummaryStatus {
+  GENERATING   @map("generating")
+  COMPLETED    @map("completed")
+  FAILED       @map("failed")
+}
+
+enum SendStatus {
+  SENDING      @map("sending")
+  SENT         @map("sent")
+  FAILED       @map("failed")
+}
+
+enum UsageType {
+  TRANSCRIPT_UPLOAD    @map("transcript_upload")
+  SUMMARY_GENERATION   @map("summary_generation")
+  EMAIL_SEND           @map("email_send")
+}

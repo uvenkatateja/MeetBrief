@@ -97,10 +97,31 @@ export async function POST(req: NextRequest) {
 
     console.log(`🚀 Starting summarization for user ${user.id}, transcript ${transcript.id}`);
 
+    // Validate AI configuration before attempting summarization
+    const { validateAIConfig } = await import('@/lib/ai-service');
+    const aiConfig = validateAIConfig();
+    
+    if (!aiConfig.hasAtLeastOne) {
+      return NextResponse.json(
+        { 
+          error: 'AI service not configured',
+          message: 'No AI API keys are configured. Please contact the administrator.',
+          details: 'Both GROQ_API_KEY and OPENAI_API_KEY are missing from environment variables.'
+        },
+        { status: 503 }
+      );
+    }
+
+    console.log(`🔧 AI Configuration: Groq=${aiConfig.groq}, OpenAI=${aiConfig.openai}`);
+    
     // Generate summary using AI service (async)
     const startTime = Date.now();
     
     try {
+      console.log(`🚀 Starting AI summarization for transcript: ${transcript.id}`);
+      console.log(`📝 Text length: ${transcript.extracted_text.length} characters`);
+      console.log(`🎯 Using ${prompt ? 'custom' : 'default'} prompt`);
+      
       const aiResult = await summarizeTranscript({
         transcript: transcript.extracted_text,
         customPrompt: prompt,
@@ -145,6 +166,21 @@ export async function POST(req: NextRequest) {
     } catch (aiError) {
       console.error('❌ AI summarization failed:', aiError);
       
+      // Determine appropriate error status and message
+      let errorStatus = 500;
+      let errorMessage = aiError instanceof Error ? aiError.message : 'Unknown AI error';
+      
+      if (errorMessage.includes('API key') || errorMessage.includes('authentication')) {
+        errorStatus = 503;
+        errorMessage = 'AI service authentication failed. Please try again later.';
+      } else if (errorMessage.includes('rate limit')) {
+        errorStatus = 429;
+        errorMessage = 'AI service rate limit exceeded. Please try again in a few minutes.';
+      } else if (errorMessage.includes('not configured')) {
+        errorStatus = 503;
+        errorMessage = 'AI service is temporarily unavailable. Please try again later.';
+      }
+      
       // Mark summary as failed in database
       await summaryDb.markFailed(
         summary.id,
@@ -154,10 +190,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: 'Summarization failed',
-          message: aiError instanceof Error ? aiError.message : 'Unknown AI error',
-          summary_id: summary.id
+          message: errorMessage,
+          summary_id: summary.id,
+          details: 'Please try again. If the issue persists, contact support.',
+          ai_config: {
+            groq_available: !!process.env.GROQ_API_KEY,
+            openai_available: !!process.env.OPENAI_API_KEY
+          }
         },
-        { status: 500 }
+        { status: errorStatus }
       );
     }
 

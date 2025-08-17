@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { Logo } from '@/components/logo'
+import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -34,13 +34,16 @@ export const HeroHeader = () => {
         )}>
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
             <div className="flex w-full justify-between lg:w-auto">
-              <Link
-                href="/"
-                aria-label="home"
-                className="flex items-center space-x-2"
-              >
-                <Logo />
-              </Link>
+              <div className="flex items-center space-x-2">
+                <Image 
+                  src="/newlogo.png" 
+                  alt="MeetBrief Logo" 
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 rounded-full object-cover"
+                  priority
+                />
+              </div>
               <button
                 onClick={() => setMenuState(!menuState)}
                 aria-label={menuState == true ? 'Close Menu' : 'Open Menu'}

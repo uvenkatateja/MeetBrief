@@ -1,13 +1,13 @@
 import { Groq } from 'groq-sdk';
 import OpenAI from 'openai';
 
-// Initialize AI clients
+// Initialize AI clients with better error handling
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY!,
+  apiKey: process.env.GROQ_API_KEY || '',
 });
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: process.env.OPENAI_API_KEY || '',
 });
 
 // ===================================
@@ -171,9 +171,20 @@ async function summarizeWithGroq(
   const startTime = Date.now();
   
   try {
+    // Check if Groq API key is available
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY not configured');
+    }
+
     const prompt = buildPrompt(transcript, customPrompt);
     
     console.log('Calling Groq API for meeting summarization...');
+    console.log(`Transcript length: ${transcript.length} characters`);
+    console.log(`Estimated tokens: ${estimateTokenCount(transcript)}`);
+    console.log(`Using model: llama-3.3-70b-versatile`);
+    console.log(`GROQ API Key configured: ${!!process.env.GROQ_API_KEY}`);
+    console.log(`GROQ API Key prefix: ${process.env.GROQ_API_KEY?.substring(0, 8)}...`);
+    
     
     const chatCompletion = await groq.chat.completions.create({
       messages: [
@@ -202,11 +213,10 @@ CONTENT REQUIREMENTS:
           content: prompt
         }
       ],
-      model: 'openai/gpt-oss-20b', // Using OpenAI GPT model through Groq
-      temperature: 0.3,
-      max_completion_tokens: 8192,
-      top_p: 0.9,
-      reasoning_effort: 'medium',
+        model: 'llama-3.3-70b-versatile', // Using Llama model through Groq
+        temperature: 0.3,
+        max_completion_tokens: 4000,
+        top_p: 0.9,
     });
 
     const summary = chatCompletion.choices[0]?.message?.content || '';
@@ -214,7 +224,7 @@ CONTENT REQUIREMENTS:
 
     return {
       summary,
-      model: 'groq-openai-gpt-oss-20b',
+        model: 'groq-llama-3.3-70b-versatile',
       tokenCount: estimateTokenCount(summary),
       processingTime,
       chunks: 1
@@ -222,6 +232,20 @@ CONTENT REQUIREMENTS:
 
   } catch (error) {
     console.error('Groq API error:', error);
+    
+    // More detailed error handling
+    if (error instanceof Error) {
+      if (error.message.includes('401') || error.message.includes('unauthorized')) {
+        throw new Error(`Groq API authentication failed. Please check API key configuration.`);
+      } else if (error.message.includes('429') || error.message.includes('rate limit')) {
+        throw new Error(`Groq API rate limit exceeded. Please try again in a moment.`);
+      } else if (error.message.includes('403')) {
+        throw new Error(`Groq API access denied. Please verify your API key has proper permissions.`);
+      } else if (error.message.includes('not configured')) {
+        throw new Error('Groq API key is not configured in environment variables.');
+      }
+    }
+    
     throw new Error(`Groq API failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -238,9 +262,20 @@ async function summarizeWithOpenAI(
   const startTime = Date.now();
   
   try {
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY not configured');
+    }
+
     const prompt = buildPrompt(transcript, customPrompt);
     
     console.log('Calling OpenAI API (fallback)...');
+    console.log(`Transcript length: ${transcript.length} characters`);
+    console.log(`Estimated tokens: ${estimateTokenCount(transcript)}`);
+    console.log(`Using model: gpt-4o-mini`);
+    console.log(`OpenAI API Key configured: ${!!process.env.OPENAI_API_KEY}`);
+    console.log(`OpenAI API Key prefix: ${process.env.OPENAI_API_KEY?.substring(0, 8)}...`);
+    
     
     const chatCompletion = await openai.chat.completions.create({
       model: 'gpt-4o-mini', // Cost-effective model
@@ -288,6 +323,20 @@ CONTENT REQUIREMENTS:
 
   } catch (error) {
     console.error('OpenAI API error:', error);
+    
+    // More detailed error handling
+    if (error instanceof Error) {
+      if (error.message.includes('401') || error.message.includes('unauthorized')) {
+        throw new Error(`OpenAI API authentication failed. Please check API key configuration.`);
+      } else if (error.message.includes('429') || error.message.includes('rate limit')) {
+        throw new Error(`OpenAI API rate limit exceeded. Please try again in a moment.`);
+      } else if (error.message.includes('403')) {
+        throw new Error(`OpenAI API access denied. Please verify your API key has proper permissions.`);
+      } else if (error.message.includes('not configured')) {
+        throw new Error('OpenAI API key is not configured in environment variables.');
+      }
+    }
+    
     throw new Error(`OpenAI API failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -346,14 +395,13 @@ async function summarizeChunks(
               content: prompt
             }
           ],
-          model: 'openai/gpt-oss-20b',
+          model: 'llama-3.3-70b-versatile',
           temperature: 0.3,
-          max_completion_tokens: 8192,
+          max_completion_tokens: 2000,
           top_p: 0.9,
-          reasoning_effort: 'medium',
         });
         summary = response.choices[0]?.message?.content || '';
-        model = 'groq-openai-gpt-oss-20b';
+        model = 'groq-llama-3.3-70b-versatile';
       }
 
       chunkSummaries.push(`Chunk ${chunk.index + 1}:\n${summary}`);
@@ -402,11 +450,10 @@ Remove redundancy and create a flowing, comprehensive summary.`;
     } else {
       const response = await groq.chat.completions.create({
         messages: [{ role: 'user', content: finalPrompt }],
-        model: 'openai/gpt-oss-20b',
+        model: 'llama-3.3-70b-versatile',
         temperature: 0.3,
-        max_completion_tokens: 8192,
+        max_completion_tokens: 3000,
         top_p: 0.9,
-        reasoning_effort: 'medium',
       });
       finalSummary = response.choices[0]?.message?.content || combinedSummaries;
     }

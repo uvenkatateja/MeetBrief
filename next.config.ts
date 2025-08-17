@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Hide Next.js development indicators
+  devIndicators: {
+    buildActivity: false,
+    buildActivityPosition: 'bottom-right',
+  },
+  // Hide preloader in development
+  experimental: {
+    clientRouterFilter: false,
+  },
   images: {
     remotePatterns: [
       {

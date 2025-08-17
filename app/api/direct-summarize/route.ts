@@ -61,7 +61,7 @@ ${text.trim()}`;
           content: fullPrompt
         }
       ],
-      model: 'llama-3.3-70b-versatile', // Correct model name
+      model: 'llama-3.3-70b-versatile',
       temperature: 0.3,
       max_completion_tokens: 4000,
       top_p: 0.9,
@@ -97,19 +97,21 @@ ${text.trim()}`;
 
     // Check if it's a Groq API specific error
     if (error instanceof Error) {
-      if (error.message.includes('401')) {
+      if (error.message.includes('401') || error.message.includes('unauthorized')) {
         return NextResponse.json(
           { 
             error: 'AI API authentication failed',
-            message: 'Please check your Groq API key configuration'
+            message: 'Please check your Groq API key configuration',
+            details: 'The GROQ_API_KEY may be invalid or expired.'
           },
           { status: 401 }
         );
-      } else if (error.message.includes('rate limit')) {
+      } else if (error.message.includes('429') || error.message.includes('rate limit')) {
         return NextResponse.json(
           { 
             error: 'Rate limit exceeded',
-            message: 'Too many requests to AI service. Please try again in a moment.'
+            message: 'Too many requests to AI service. Please try again in a moment.',
+            details: 'Groq API rate limit exceeded. Wait a few minutes before retrying.'
           },
           { status: 429 }
         );
@@ -117,7 +119,17 @@ ${text.trim()}`;
         return NextResponse.json(
           { 
             error: 'AI model error',
-            message: 'The AI model is currently unavailable. Please try again.'
+            message: 'The AI model is currently unavailable. Please try again.',
+            details: 'Groq model llama-3.3-70b-versatile may be temporarily unavailable.'
+          },
+          { status: 503 }
+        );
+      } else if (error.message.includes('not configured')) {
+        return NextResponse.json(
+          { 
+            error: 'AI service not configured',
+            message: 'AI service is not properly configured.',
+            details: 'GROQ_API_KEY is not set in environment variables.'
           },
           { status: 503 }
         );

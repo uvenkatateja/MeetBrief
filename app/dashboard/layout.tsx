@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { UserButton } from '@clerk/nextjs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
@@ -90,12 +91,16 @@ const Sidebar = ({ className = '' }: SidebarProps) => {
       <div className="flex flex-col flex-grow pt-5 bg-background border-r overflow-y-auto">
         {/* Sidebar Header with Logo */}
         <div className="flex items-center flex-shrink-0 px-4 pb-4">
-          <Link href="/dashboard" className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">MB</span>
-            </div>
+          <div className="flex items-center space-x-3">
+            <Image 
+              src="/newlogo.png" 
+              alt="MeetBrief Logo" 
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-full object-cover"
+            />
             <span className="text-xl font-bold text-foreground">MeetBrief</span>
-          </Link>
+          </div>
         </div>
         
         {/* Navigation Links */}
@@ -161,12 +166,16 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
         <div className="flex flex-col h-full">
           {/* Mobile Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b">
-            <Link href="/dashboard" className="flex items-center space-x-3" onClick={onClose}>
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">MB</span>
-              </div>
+            <div className="flex items-center space-x-3">
+              <Image 
+                src="/newlogo.png" 
+                alt="MeetBrief Logo" 
+                width={48}
+                height={48}
+                className="h-12 w-12 rounded-full object-cover"
+              />
               <span className="text-xl font-bold text-foreground">MeetBrief</span>
-            </Link>
+            </div>
             <Button
               variant="ghost"
               size="sm"

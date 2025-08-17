@@ -1,5 +1,4 @@
 'use client'
-import { Logo } from '@/components/logo'
 import { Activity, Map as MapIcon, MessageCircle } from 'lucide-react'
 import DottedMap from 'dotted-map'
 import { Area, AreaChart, CartesianGrid } from 'recharts'
@@ -52,7 +51,6 @@ export default function FeaturesSection() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="flex size-5 rounded-full border">
-                  <Logo />
                 </span>
                 <span className="text-muted-foreground text-xs">Sat 22 Feb</span>
               </div>

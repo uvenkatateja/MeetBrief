@@ -163,6 +163,18 @@ Try Meetbrief: ${process.env.NEXT_PUBLIC_APP_URL || 'https://meetbrief.vercel.ap
   `.trim();
 }
 
+/**
+ * Sanitize tag values to only contain ASCII letters, numbers, underscores, or dashes
+ */
+function sanitizeTagValue(value: string): string {
+  return value
+    .replace(/[^a-zA-Z0-9_-]/g, '-') // Replace invalid chars with dashes
+    .replace(/-+/g, '-') // Replace multiple dashes with single dash
+    .replace(/^-|-$/g, '') // Remove leading/trailing dashes
+    .toLowerCase() // Convert to lowercase
+    .substring(0, 50); // Limit length
+}
+
 export async function POST(req: NextRequest) {
   try {
     console.log('📧 Direct Email API called');
@@ -216,11 +228,11 @@ export async function POST(req: NextRequest) {
       tags: [
         {
           name: 'category',
-          value: 'summary-share'
+          value: sanitizeTagValue('summary-share')
         },
         {
           name: 'ai-model',
-          value: summary.ai_model
+          value: sanitizeTagValue(summary.ai_model)
         }
       ]
     });

@@ -50,7 +50,7 @@ export function FileUpload({ onUploadComplete, className }: FileUploadProps) {
           Upload Meeting Transcript
         </CardTitle>
         <CardDescription>
-          Upload your meeting transcript in PDF, DOCX, or TXT format. We'll extract the text and prepare it for AI summarization.
+          Upload your meeting transcript as a text file. We'll prepare it for AI summarization.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -151,10 +151,7 @@ export function FileUpload({ onUploadComplete, className }: FileUploadProps) {
             Supported Formats
           </h5>
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>• <strong>PDF:</strong> Up to 16MB - Meeting notes, presentations</p>
-            <p>• <strong>DOCX:</strong> Up to 16MB - Word documents with transcripts</p>
-            <p>• <strong>TXT:</strong> Up to 4MB - Plain text transcripts</p>
-            <p>• <strong>Audio/Video:</strong> Up to 64MB - Upload transcript separately</p>
+            <p>• <strong>TXT:</strong> Up to 4MB - Plain text meeting transcripts</p>
           </div>
         </div>
       </CardContent>

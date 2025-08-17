@@ -8,14 +8,7 @@ const f = createUploadthing();
 export const ourFileRouter = {
   // Define as many FileRoutes as you like, each with a unique routeSlug
   transcriptUploader: f({
-    "application/pdf": { maxFileSize: "16MB" },
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { maxFileSize: "16MB" },
-    "application/msword": { maxFileSize: "16MB" },
     "text/plain": { maxFileSize: "4MB" },
-    "audio/mpeg": { maxFileSize: "32MB" },
-    "audio/wav": { maxFileSize: "32MB" },
-    "audio/mp4": { maxFileSize: "32MB" },
-    "video/mp4": { maxFileSize: "64MB" },
   })
     // Set permissions and file types for this FileRoute
     .middleware(async ({ req }) => {

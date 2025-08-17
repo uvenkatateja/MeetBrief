@@ -195,6 +195,18 @@ Try Meetbrief: ${process.env.NEXT_PUBLIC_APP_URL}
 }
 
 /**
+ * Sanitize tag values to only contain ASCII letters, numbers, underscores, or dashes
+ */
+function sanitizeTagValue(value: string): string {
+  return value
+    .replace(/[^a-zA-Z0-9_-]/g, '-') // Replace invalid chars with dashes
+    .replace(/-+/g, '-') // Replace multiple dashes with single dash
+    .replace(/^-|-$/g, '') // Remove leading/trailing dashes
+    .toLowerCase() // Convert to lowercase
+    .substring(0, 50); // Limit length
+}
+
+/**
  * Send summary email using Resend
  */
 export async function sendSummaryEmail(data: ShareSummaryData): Promise<{
@@ -221,11 +233,11 @@ export async function sendSummaryEmail(data: ShareSummaryData): Promise<{
       tags: [
         {
           name: 'category',
-          value: 'summary-share'
+          value: sanitizeTagValue('summary-share')
         },
         {
           name: 'ai-model',
-          value: data.summary.ai_model
+          value: sanitizeTagValue(data.summary.ai_model)
         }
       ]
     });

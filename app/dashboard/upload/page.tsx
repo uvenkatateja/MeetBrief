@@ -245,9 +245,9 @@ export default function UploadPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Upload Meeting Files</h1>
+        <h1 className="text-3xl font-bold text-foreground">Upload Meeting Transcript</h1>
         <p className="text-muted-foreground mt-2">
-          Upload your meeting transcripts, audio recordings, or documents to get AI-powered summaries
+          Upload your meeting transcript as a text file to get AI-powered summaries
         </p>
       </div>
 
@@ -262,7 +262,7 @@ export default function UploadPage() {
                 Upload Files
               </CardTitle>
               <CardDescription>
-                Supported formats: .txt, .docx, .pdf, .mp3, .wav, .m4a, .mp4
+                Supported format: .txt files only
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -271,13 +271,7 @@ export default function UploadPage() {
                   onUploadComplete={handleUploadComplete}
                   maxFiles={5}
                   acceptedFileTypes={[
-                    'text/plain',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'application/pdf',
-                    'audio/mpeg',
-                    'audio/wav',
-                    'audio/x-m4a',
-                    'video/mp4'
+                    'text/plain'
                   ]}
                 />
               ) : (
@@ -397,9 +391,9 @@ export default function UploadPage() {
                   1
                 </div>
                 <div>
-                  <h4 className="font-medium">Upload Your Files</h4>
+                  <h4 className="font-medium">Upload Your Transcript</h4>
                   <p className="text-sm text-muted-foreground">
-                    Select and upload your meeting files (audio, video, or documents)
+                    Select and upload your meeting transcript as a text file
                   </p>
                 </div>
               </div>
@@ -409,9 +403,9 @@ export default function UploadPage() {
                   2
                 </div>
                 <div>
-                  <h4 className="font-medium">Text Extraction</h4>
+                  <h4 className="font-medium">Text Processing</h4>
                   <p className="text-sm text-muted-foreground">
-                    We extract text from your files using AI transcription and text parsing
+                    We process your text transcript and prepare it for AI analysis
                   </p>
                 </div>
               </div>
@@ -449,16 +443,8 @@ export default function UploadPage() {
             <CardContent>
               <div className="space-y-3">
                 <div>
-                  <h4 className="font-medium text-sm">Text Documents</h4>
-                  <p className="text-xs text-muted-foreground">.txt, .docx, .pdf</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-sm">Audio Files</h4>
-                  <p className="text-xs text-muted-foreground">.mp3, .wav, .m4a</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-sm">Video Files</h4>
-                  <p className="text-xs text-muted-foreground">.mp4 (audio will be extracted)</p>
+                  <h4 className="font-medium text-sm">Text Files</h4>
+                  <p className="text-xs text-muted-foreground">.txt only - Plain text meeting transcripts</p>
                 </div>
               </div>
             </CardContent>

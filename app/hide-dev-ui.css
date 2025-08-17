@@ -1,0 +1,37 @@
+/* Hide Next.js development indicators */
+.__next-dev-overlay-overlay-wrapper,
+.__next-dev-overlay-portal,
+[data-nextjs-scroll-focus-boundary],
+[data-nextjs-dialog-overlay],
+[data-nextjs-dialog-content],
+[data-nextjs-toast],
+[data-nextjs-error-overlay] {
+  display: none !important;
+}
+
+/* Hide route indicator */
+[data-nextjs-route-indicator] {
+  display: none !important;
+}
+
+/* Hide build activity indicator */
+.__next-dev-overlay-build-activity {
+  display: none !important;
+}
+
+/* Hide turbopack indicators */
+[data-turbopack] {
+  display: none !important;
+}
+
+/* Hide Next.js development panel */
+.next-error-h1,
+.next-error-h2,
+.__next-error-info {
+  display: none !important;
+}
+
+/* Hide React DevTools in production-like environment */
+#react-devtools-container {
+  display: none !important;
+}
